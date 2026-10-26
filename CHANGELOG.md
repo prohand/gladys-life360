@@ -6,6 +6,8 @@ All notable changes to this integration are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.0.1] - 2026-10-26
+
 ### Added
 
 - First version of the Life360 integration, built from the official Gladys JavaScript template.
@@ -27,4 +29,5 @@ All notable changes to this integration are documented here. The format follows
   documentation).
 - `SECURITY.md`, `CLAUDE.md`, CI, Release, image build and GitHub release workflows.
 
-[Unreleased]: https://github.com/prohand/gladys-life360/commits/main
+[Unreleased]: https://github.com/prohand/gladys-life360/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/prohand/gladys-life360/releases/tag/v0.0.1
