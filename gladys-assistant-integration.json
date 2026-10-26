@@ -1,0 +1,1033 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "Life360",
+  "description": {
+    "en": "Family presence in Gladys: who is home, places, phone battery, from Life360.",
+    "fr": "Présence de la famille dans Gladys : qui est là, lieux, batterie, via Life360.",
+    "de": "Familienpräsenz in Gladys: wer zu Hause ist, Orte, Akkustand, über Life360.",
+    "es": "Presencia familiar en Gladys: quién está en casa, lugares, batería, con Life360."
+  },
+  "version": "0.0.0",
+  "docker_image": "ghcr.io/prohand/gladys-life360:0.0.0",
+  "gladys_version": ">=5.3.0",
+  "cover_image": "https://raw.githubusercontent.com/prohand/gladys-life360/main/cover.png",
+  "categories": ["security", "services"],
+  "keywords": [
+    "life360",
+    "family",
+    "presence",
+    "présence",
+    "geofencing",
+    "gps",
+    "family locator",
+    "localisation",
+    "anwesenheit",
+    "presencia"
+  ],
+  "transports": ["cloud"],
+  "location": true,
+  "config_schema": [
+    {
+      "key": "intro",
+      "type": "section",
+      "label": {
+        "en": "Getting started",
+        "fr": "Pour commencer",
+        "de": "Erste Schritte",
+        "es": "Primeros pasos"
+      },
+      "description": {
+        "en": "Life360 has no official API: the integration uses the one of the Life360 app. Sign in on life360.com, copy the access token (see the documentation) and paste it below. Each member of your circles becomes a Gladys device: at home, place, phone battery, distance from home.",
+        "fr": "Life360 n'a pas d'API officielle : l'intégration utilise celle de l'application Life360. Connectez-vous sur life360.com, copiez le jeton d'accès (voir la documentation) et collez-le ci-dessous. Chaque membre de vos cercles devient un appareil Gladys : à la maison, lieu, batterie du téléphone, distance du domicile.",
+        "de": "Life360 hat keine offizielle API: Die Integration nutzt die der Life360-App. Melde dich auf life360.com an, kopiere das Zugriffstoken (siehe Dokumentation) und füge es unten ein. Jedes Mitglied deiner Kreise wird ein Gladys-Gerät: zu Hause, Ort, Akku des Telefons, Entfernung von zu Hause.",
+        "es": "Life360 no tiene API oficial: la integración usa la de la app Life360. Inicie sesión en life360.com, copie el token de acceso (vea la documentación) y péguelo abajo. Cada miembro de sus círculos se convierte en un dispositivo de Gladys: en casa, lugar, batería del teléfono, distancia de casa."
+      },
+      "links": [
+        {
+          "url": "https://life360.com/login",
+          "label": {
+            "en": "Life360 sign-in",
+            "fr": "Connexion Life360",
+            "de": "Life360-Anmeldung",
+            "es": "Inicio de sesión Life360"
+          }
+        },
+        {
+          "url": "https://github.com/prohand/gladys-life360/blob/main/docs/en.md",
+          "label": {
+            "en": "Integration documentation",
+            "fr": "Documentation de l'intégration",
+            "de": "Dokumentation der Integration",
+            "es": "Documentación de la integración"
+          }
+        }
+      ]
+    },
+    {
+      "key": "auth_method",
+      "type": "select",
+      "label": {
+        "en": "Sign-in method",
+        "fr": "Méthode de connexion",
+        "de": "Anmeldemethode",
+        "es": "Método de inicio de sesión"
+      },
+      "description": {
+        "en": "The access token is the reliable way: Life360 often refuses username and password sign-ins now.",
+        "fr": "Le jeton d'accès est la méthode fiable : Life360 refuse souvent désormais la connexion par identifiant et mot de passe.",
+        "de": "Das Zugriffstoken ist der zuverlässige Weg: Life360 lehnt Anmeldungen mit Benutzername und Passwort inzwischen oft ab.",
+        "es": "El token de acceso es la vía fiable: Life360 rechaza ahora a menudo el inicio de sesión con usuario y contraseña."
+      },
+      "required": false,
+      "default": "token",
+      "options": [
+        {
+          "value": "token",
+          "label": {
+            "en": "Access token (recommended)",
+            "fr": "Jeton d'accès (recommandé)",
+            "de": "Zugriffstoken (empfohlen)",
+            "es": "Token de acceso (recomendado)"
+          }
+        },
+        {
+          "value": "password",
+          "label": {
+            "en": "Username and password",
+            "fr": "Identifiant et mot de passe",
+            "de": "Benutzername und Passwort",
+            "es": "Usuario y contraseña"
+          }
+        }
+      ]
+    },
+    {
+      "key": "access_token",
+      "type": "secret",
+      "label": {
+        "en": "Access token",
+        "fr": "Jeton d'accès",
+        "de": "Zugriffstoken",
+        "es": "Token de acceso"
+      },
+      "description": {
+        "en": "The access_token copied from life360.com (the \"Bearer\" prefix is optional).",
+        "fr": "L'access_token copié depuis life360.com (le préfixe « Bearer » est facultatif).",
+        "de": "Das von life360.com kopierte access_token (das Präfix „Bearer“ ist optional).",
+        "es": "El access_token copiado de life360.com (el prefijo «Bearer» es opcional)."
+      },
+      "required": false
+    },
+    {
+      "key": "username",
+      "type": "string",
+      "label": {
+        "en": "Username (email or phone)",
+        "fr": "Identifiant (e-mail ou téléphone)",
+        "de": "Benutzername (E-Mail oder Telefon)",
+        "es": "Usuario (correo o teléfono)"
+      },
+      "description": {
+        "en": "Only with the username and password method.",
+        "fr": "Uniquement avec la méthode identifiant et mot de passe.",
+        "de": "Nur bei der Methode Benutzername und Passwort.",
+        "es": "Solo con el método de usuario y contraseña."
+      },
+      "placeholder": {
+        "en": "e.g. me@example.com",
+        "fr": "ex. moi@exemple.fr",
+        "de": "z. B. ich@beispiel.de",
+        "es": "p. ej. yo@ejemplo.es"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "password",
+      "type": "secret",
+      "label": {
+        "en": "Password",
+        "fr": "Mot de passe",
+        "de": "Passwort",
+        "es": "Contraseña"
+      },
+      "description": {
+        "en": "Only with the username and password method.",
+        "fr": "Uniquement avec la méthode identifiant et mot de passe.",
+        "de": "Nur bei der Methode Benutzername und Passwort.",
+        "es": "Solo con el método de usuario y contraseña."
+      },
+      "required": false
+    },
+    {
+      "key": "circles",
+      "type": "string",
+      "label": {
+        "en": "Circles to follow",
+        "fr": "Cercles à suivre",
+        "de": "Zu folgende Kreise",
+        "es": "Círculos a seguir"
+      },
+      "description": {
+        "en": "Circle names separated by commas. Leave empty to follow every circle.",
+        "fr": "Noms des cercles séparés par des virgules. Laissez vide pour suivre tous les cercles.",
+        "de": "Kreisnamen, durch Kommas getrennt. Leer lassen, um allen Kreisen zu folgen.",
+        "es": "Nombres de los círculos separados por comas. Déjelo vacío para seguir todos."
+      },
+      "placeholder": {
+        "en": "e.g. Family",
+        "fr": "ex. Famille",
+        "de": "z. B. Familie",
+        "es": "p. ej. Familia"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "home_house",
+      "type": "select",
+      "source": "houses",
+      "label": {
+        "en": "Home",
+        "fr": "Domicile",
+        "de": "Zuhause",
+        "es": "Casa"
+      },
+      "description": {
+        "en": "The Gladys house whose coordinates mean \"at home\". Empty: the first house with coordinates.",
+        "fr": "La maison Gladys dont les coordonnées signifient « à la maison ». Vide : la première maison avec coordonnées.",
+        "de": "Das Gladys-Haus, dessen Koordinaten „zu Hause“ bedeuten. Leer: das erste Haus mit Koordinaten.",
+        "es": "La casa de Gladys cuyas coordenadas significan «en casa». Vacío: la primera casa con coordenadas."
+      },
+      "required": false
+    },
+    {
+      "key": "home_place",
+      "type": "string",
+      "label": {
+        "en": "Life360 place for home",
+        "fr": "Lieu Life360 du domicile",
+        "de": "Life360-Ort für Zuhause",
+        "es": "Lugar de Life360 para casa"
+      },
+      "description": {
+        "en": "Name of the Life360 place that means \"at home\" too. Empty: coordinates only.",
+        "fr": "Nom du lieu Life360 qui signifie aussi « à la maison ». Vide : coordonnées seulement.",
+        "de": "Name des Life360-Orts, der ebenfalls „zu Hause“ bedeutet. Leer: nur Koordinaten.",
+        "es": "Nombre del lugar de Life360 que también significa «en casa». Vacío: solo coordenadas."
+      },
+      "placeholder": {
+        "en": "e.g. Home",
+        "fr": "ex. Maison",
+        "de": "z. B. Zuhause",
+        "es": "p. ej. Casa"
+      },
+      "required": false,
+      "default": "Home"
+    },
+    {
+      "key": "home_radius",
+      "type": "number",
+      "label": {
+        "en": "Home radius (m)",
+        "fr": "Rayon du domicile (m)",
+        "de": "Radius um Zuhause (m)",
+        "es": "Radio de casa (m)"
+      },
+      "description": {
+        "en": "Distance from the house still counted as \"at home\", in metres.",
+        "fr": "Distance de la maison encore comptée « à la maison », en mètres.",
+        "de": "Entfernung vom Haus, die noch als „zu Hause“ zählt, in Metern.",
+        "es": "Distancia de la casa que aún cuenta como «en casa», en metros."
+      },
+      "required": false,
+      "default": 150,
+      "min": 25,
+      "max": 5000
+    },
+    {
+      "key": "refresh_interval",
+      "type": "number",
+      "label": {
+        "en": "Refresh interval (s)",
+        "fr": "Intervalle de rafraîchissement (s)",
+        "de": "Aktualisierungsintervall (s)",
+        "es": "Intervalo de actualización (s)"
+      },
+      "description": {
+        "en": "How often Life360 is read, in seconds (15 minimum).",
+        "fr": "Fréquence de lecture de Life360, en secondes (15 minimum).",
+        "de": "Wie oft Life360 abgefragt wird, in Sekunden (mindestens 15).",
+        "es": "Cada cuánto se lee Life360, en segundos (15 como mínimo)."
+      },
+      "required": false,
+      "default": 60,
+      "min": 15,
+      "max": 3600
+    },
+    {
+      "key": "battery_low_threshold",
+      "type": "number",
+      "label": {
+        "en": "Low battery threshold (%)",
+        "fr": "Seuil de batterie faible (%)",
+        "de": "Schwelle für schwachen Akku (%)",
+        "es": "Umbral de batería baja (%)"
+      },
+      "description": {
+        "en": "Below this level the \"Phone battery low\" scene trigger fires.",
+        "fr": "Sous ce niveau, le déclencheur de scène « Batterie du téléphone faible » se déclenche.",
+        "de": "Unter diesem Wert löst der Szenen-Auslöser „Akku des Telefons schwach“ aus.",
+        "es": "Por debajo de este nivel se activa el disparador «Batería del teléfono baja»."
+      },
+      "required": false,
+      "default": 20,
+      "min": 5,
+      "max": 50
+    },
+    {
+      "key": "debug_logs",
+      "type": "boolean",
+      "label": {
+        "en": "Detailed logs",
+        "fr": "Logs détaillés",
+        "de": "Ausführliche Logs",
+        "es": "Registros detallados"
+      },
+      "description": {
+        "en": "Log every Life360 read, to diagnose a problem. Tokens are never logged.",
+        "fr": "Journalise chaque lecture Life360, pour diagnostiquer un problème. Les jetons ne sont jamais journalisés.",
+        "de": "Protokolliert jede Life360-Abfrage, zur Fehlersuche. Tokens werden nie protokolliert.",
+        "es": "Registra cada lectura de Life360, para diagnosticar un problema. Los tokens nunca se registran."
+      },
+      "required": false,
+      "default": false
+    }
+  ],
+  "actions": [
+    {
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "timeout_seconds": 45
+    },
+    {
+      "key": "request_location",
+      "label": {
+        "en": "Locate a member now",
+        "fr": "Localiser un membre maintenant",
+        "de": "Ein Mitglied jetzt orten",
+        "es": "Localizar a un miembro ahora"
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "member",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Member",
+            "fr": "Membre",
+            "de": "Mitglied",
+            "es": "Miembro"
+          },
+          "required": true
+        }
+      ]
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "arrived_home",
+      "label": {
+        "en": "Member arrived home",
+        "fr": "Membre arrivé à la maison",
+        "de": "Mitglied ist nach Hause gekommen",
+        "es": "Miembro llegó a casa"
+      },
+      "description": {
+        "en": "A Life360 member is back home.",
+        "fr": "Un membre Life360 est rentré à la maison.",
+        "de": "Ein Life360-Mitglied ist wieder zu Hause.",
+        "es": "Un miembro de Life360 volvió a casa."
+      },
+      "fields": [
+        {
+          "key": "member",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Member",
+            "fr": "Membre",
+            "de": "Mitglied",
+            "es": "Miembro"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "member_name",
+          "type": "string",
+          "label": {
+            "en": "Member name",
+            "fr": "Nom du membre",
+            "de": "Name des Mitglieds",
+            "es": "Nombre del miembro"
+          }
+        },
+        {
+          "key": "place",
+          "type": "string",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
+          }
+        },
+        {
+          "key": "address",
+          "type": "string",
+          "label": {
+            "en": "Address",
+            "fr": "Adresse",
+            "de": "Adresse",
+            "es": "Dirección"
+          }
+        },
+        {
+          "key": "battery",
+          "type": "number",
+          "label": {
+            "en": "Phone battery (%)",
+            "fr": "Batterie du téléphone (%)",
+            "de": "Akku des Telefons (%)",
+            "es": "Batería del teléfono (%)"
+          }
+        },
+        {
+          "key": "distance_km",
+          "type": "number",
+          "label": {
+            "en": "Distance from home (km)",
+            "fr": "Distance du domicile (km)",
+            "de": "Entfernung von zu Hause (km)",
+            "es": "Distancia de casa (km)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "left_home",
+      "label": {
+        "en": "Member left home",
+        "fr": "Membre parti de la maison",
+        "de": "Mitglied hat das Haus verlassen",
+        "es": "Miembro salió de casa"
+      },
+      "description": {
+        "en": "A Life360 member is no longer at home.",
+        "fr": "Un membre Life360 n'est plus à la maison.",
+        "de": "Ein Life360-Mitglied ist nicht mehr zu Hause.",
+        "es": "Un miembro de Life360 ya no está en casa."
+      },
+      "fields": [
+        {
+          "key": "member",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Member",
+            "fr": "Membre",
+            "de": "Mitglied",
+            "es": "Miembro"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "member_name",
+          "type": "string",
+          "label": {
+            "en": "Member name",
+            "fr": "Nom du membre",
+            "de": "Name des Mitglieds",
+            "es": "Nombre del miembro"
+          }
+        },
+        {
+          "key": "place",
+          "type": "string",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
+          }
+        },
+        {
+          "key": "address",
+          "type": "string",
+          "label": {
+            "en": "Address",
+            "fr": "Adresse",
+            "de": "Adresse",
+            "es": "Dirección"
+          }
+        },
+        {
+          "key": "battery",
+          "type": "number",
+          "label": {
+            "en": "Phone battery (%)",
+            "fr": "Batterie du téléphone (%)",
+            "de": "Akku des Telefons (%)",
+            "es": "Batería del teléfono (%)"
+          }
+        },
+        {
+          "key": "distance_km",
+          "type": "number",
+          "label": {
+            "en": "Distance from home (km)",
+            "fr": "Distance du domicile (km)",
+            "de": "Entfernung von zu Hause (km)",
+            "es": "Distancia de casa (km)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "place_arrived",
+      "label": {
+        "en": "Member arrived at a place",
+        "fr": "Membre arrivé dans un lieu",
+        "de": "Mitglied an einem Ort angekommen",
+        "es": "Miembro llegó a un lugar"
+      },
+      "description": {
+        "en": "A member entered a Life360 place (school, work...).",
+        "fr": "Un membre est entré dans un lieu Life360 (école, travail...).",
+        "de": "Ein Mitglied hat einen Life360-Ort betreten (Schule, Arbeit...).",
+        "es": "Un miembro entró en un lugar de Life360 (colegio, trabajo...)."
+      },
+      "fields": [
+        {
+          "key": "member",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Member",
+            "fr": "Membre",
+            "de": "Mitglied",
+            "es": "Miembro"
+          }
+        },
+        {
+          "key": "place",
+          "type": "string",
+          "label": {
+            "en": "Place name (empty: any)",
+            "fr": "Nom du lieu (vide : tous)",
+            "de": "Ortsname (leer: alle)",
+            "es": "Nombre del lugar (vacío: cualquiera)"
+          },
+          "placeholder": {
+            "en": "e.g. School",
+            "fr": "ex. École",
+            "de": "z. B. Schule",
+            "es": "p. ej. Colegio"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "member_name",
+          "type": "string",
+          "label": {
+            "en": "Member name",
+            "fr": "Nom du membre",
+            "de": "Name des Mitglieds",
+            "es": "Nombre del miembro"
+          }
+        },
+        {
+          "key": "place",
+          "type": "string",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
+          }
+        },
+        {
+          "key": "address",
+          "type": "string",
+          "label": {
+            "en": "Address",
+            "fr": "Adresse",
+            "de": "Adresse",
+            "es": "Dirección"
+          }
+        },
+        {
+          "key": "battery",
+          "type": "number",
+          "label": {
+            "en": "Phone battery (%)",
+            "fr": "Batterie du téléphone (%)",
+            "de": "Akku des Telefons (%)",
+            "es": "Batería del teléfono (%)"
+          }
+        },
+        {
+          "key": "distance_km",
+          "type": "number",
+          "label": {
+            "en": "Distance from home (km)",
+            "fr": "Distance du domicile (km)",
+            "de": "Entfernung von zu Hause (km)",
+            "es": "Distancia de casa (km)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "place_left",
+      "label": {
+        "en": "Member left a place",
+        "fr": "Membre parti d'un lieu",
+        "de": "Mitglied hat einen Ort verlassen",
+        "es": "Miembro salió de un lugar"
+      },
+      "description": {
+        "en": "A member left a Life360 place.",
+        "fr": "Un membre a quitté un lieu Life360.",
+        "de": "Ein Mitglied hat einen Life360-Ort verlassen.",
+        "es": "Un miembro salió de un lugar de Life360."
+      },
+      "fields": [
+        {
+          "key": "member",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Member",
+            "fr": "Membre",
+            "de": "Mitglied",
+            "es": "Miembro"
+          }
+        },
+        {
+          "key": "place",
+          "type": "string",
+          "label": {
+            "en": "Place name (empty: any)",
+            "fr": "Nom du lieu (vide : tous)",
+            "de": "Ortsname (leer: alle)",
+            "es": "Nombre del lugar (vacío: cualquiera)"
+          },
+          "placeholder": {
+            "en": "e.g. School",
+            "fr": "ex. École",
+            "de": "z. B. Schule",
+            "es": "p. ej. Colegio"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "member_name",
+          "type": "string",
+          "label": {
+            "en": "Member name",
+            "fr": "Nom du membre",
+            "de": "Name des Mitglieds",
+            "es": "Nombre del miembro"
+          }
+        },
+        {
+          "key": "place",
+          "type": "string",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
+          }
+        },
+        {
+          "key": "address",
+          "type": "string",
+          "label": {
+            "en": "Address",
+            "fr": "Adresse",
+            "de": "Adresse",
+            "es": "Dirección"
+          }
+        },
+        {
+          "key": "battery",
+          "type": "number",
+          "label": {
+            "en": "Phone battery (%)",
+            "fr": "Batterie du téléphone (%)",
+            "de": "Akku des Telefons (%)",
+            "es": "Batería del teléfono (%)"
+          }
+        },
+        {
+          "key": "distance_km",
+          "type": "number",
+          "label": {
+            "en": "Distance from home (km)",
+            "fr": "Distance du domicile (km)",
+            "de": "Entfernung von zu Hause (km)",
+            "es": "Distancia de casa (km)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "driving_started",
+      "label": {
+        "en": "Member started driving",
+        "fr": "Membre a pris la route",
+        "de": "Mitglied fährt los",
+        "es": "Miembro empezó a conducir"
+      },
+      "description": {
+        "en": "Life360 detected that a member is driving.",
+        "fr": "Life360 a détecté qu'un membre conduit.",
+        "de": "Life360 hat erkannt, dass ein Mitglied fährt.",
+        "es": "Life360 detectó que un miembro está conduciendo."
+      },
+      "fields": [
+        {
+          "key": "member",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Member",
+            "fr": "Membre",
+            "de": "Mitglied",
+            "es": "Miembro"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "member_name",
+          "type": "string",
+          "label": {
+            "en": "Member name",
+            "fr": "Nom du membre",
+            "de": "Name des Mitglieds",
+            "es": "Nombre del miembro"
+          }
+        },
+        {
+          "key": "place",
+          "type": "string",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
+          }
+        },
+        {
+          "key": "address",
+          "type": "string",
+          "label": {
+            "en": "Address",
+            "fr": "Adresse",
+            "de": "Adresse",
+            "es": "Dirección"
+          }
+        },
+        {
+          "key": "battery",
+          "type": "number",
+          "label": {
+            "en": "Phone battery (%)",
+            "fr": "Batterie du téléphone (%)",
+            "de": "Akku des Telefons (%)",
+            "es": "Batería del teléfono (%)"
+          }
+        },
+        {
+          "key": "distance_km",
+          "type": "number",
+          "label": {
+            "en": "Distance from home (km)",
+            "fr": "Distance du domicile (km)",
+            "de": "Entfernung von zu Hause (km)",
+            "es": "Distancia de casa (km)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "battery_low",
+      "label": {
+        "en": "Phone battery low",
+        "fr": "Batterie du téléphone faible",
+        "de": "Akku des Telefons schwach",
+        "es": "Batería del teléfono baja"
+      },
+      "description": {
+        "en": "A member's phone went below the low battery threshold.",
+        "fr": "Le téléphone d'un membre est passé sous le seuil de batterie faible.",
+        "de": "Das Telefon eines Mitglieds ist unter die Akku-Schwelle gefallen.",
+        "es": "El teléfono de un miembro bajó del umbral de batería baja."
+      },
+      "fields": [
+        {
+          "key": "member",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Member",
+            "fr": "Membre",
+            "de": "Mitglied",
+            "es": "Miembro"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "member_name",
+          "type": "string",
+          "label": {
+            "en": "Member name",
+            "fr": "Nom du membre",
+            "de": "Name des Mitglieds",
+            "es": "Nombre del miembro"
+          }
+        },
+        {
+          "key": "place",
+          "type": "string",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
+          }
+        },
+        {
+          "key": "address",
+          "type": "string",
+          "label": {
+            "en": "Address",
+            "fr": "Adresse",
+            "de": "Adresse",
+            "es": "Dirección"
+          }
+        },
+        {
+          "key": "battery",
+          "type": "number",
+          "label": {
+            "en": "Phone battery (%)",
+            "fr": "Batterie du téléphone (%)",
+            "de": "Akku des Telefons (%)",
+            "es": "Batería del teléfono (%)"
+          }
+        },
+        {
+          "key": "distance_km",
+          "type": "number",
+          "label": {
+            "en": "Distance from home (km)",
+            "fr": "Distance du domicile (km)",
+            "de": "Entfernung von zu Hause (km)",
+            "es": "Distancia de casa (km)"
+          }
+        }
+      ]
+    }
+  ],
+  "scene_actions": [
+    {
+      "key": "request_location_update",
+      "label": {
+        "en": "Locate a Life360 member",
+        "fr": "Localiser un membre Life360",
+        "de": "Ein Life360-Mitglied orten",
+        "es": "Localizar a un miembro de Life360"
+      },
+      "description": {
+        "en": "Ask the member's phone for a fresh position.",
+        "fr": "Demande une position fraîche au téléphone du membre.",
+        "de": "Fordert vom Telefon des Mitglieds einen frischen Standort an.",
+        "es": "Pide una posición nueva al teléfono del miembro."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "member",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Member",
+            "fr": "Membre",
+            "de": "Mitglied",
+            "es": "Miembro"
+          },
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "key": "requested",
+          "type": "boolean",
+          "label": {
+            "en": "Position requested",
+            "fr": "Position demandée",
+            "de": "Standort angefordert",
+            "es": "Posición solicitada"
+          }
+        }
+      ]
+    },
+    {
+      "key": "get_member_status",
+      "label": {
+        "en": "Read a Life360 member",
+        "fr": "Lire un membre Life360",
+        "de": "Ein Life360-Mitglied lesen",
+        "es": "Leer un miembro de Life360"
+      },
+      "description": {
+        "en": "Where the member is, their battery and distance from home.",
+        "fr": "Où est le membre, sa batterie et sa distance du domicile.",
+        "de": "Wo das Mitglied ist, sein Akku und die Entfernung von zu Hause.",
+        "es": "Dónde está el miembro, su batería y su distancia de casa."
+      },
+      "timeout_seconds": 10,
+      "fields": [
+        {
+          "key": "member",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Member",
+            "fr": "Membre",
+            "de": "Mitglied",
+            "es": "Miembro"
+          },
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "key": "found",
+          "type": "boolean",
+          "label": {
+            "en": "Position known",
+            "fr": "Position connue",
+            "de": "Standort bekannt",
+            "es": "Posición conocida"
+          }
+        },
+        {
+          "key": "at_home",
+          "type": "boolean",
+          "label": {
+            "en": "At home",
+            "fr": "À la maison",
+            "de": "Zu Hause",
+            "es": "En casa"
+          }
+        },
+        {
+          "key": "place",
+          "type": "string",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
+          }
+        },
+        {
+          "key": "distance_km",
+          "type": "number",
+          "label": {
+            "en": "Distance from home (km, -1 unknown)",
+            "fr": "Distance du domicile (km, -1 inconnue)",
+            "de": "Entfernung von zu Hause (km, -1 unbekannt)",
+            "es": "Distancia de casa (km, -1 desconocida)"
+          }
+        },
+        {
+          "key": "battery",
+          "type": "number",
+          "label": {
+            "en": "Phone battery (%, -1 unknown)",
+            "fr": "Batterie du téléphone (%, -1 inconnue)",
+            "de": "Akku des Telefons (%, -1 unbekannt)",
+            "es": "Batería del teléfono (%, -1 desconocida)"
+          }
+        },
+        {
+          "key": "charging",
+          "type": "boolean",
+          "label": {
+            "en": "Phone charging",
+            "fr": "Téléphone en charge",
+            "de": "Telefon lädt",
+            "es": "Teléfono cargando"
+          }
+        },
+        {
+          "key": "driving",
+          "type": "boolean",
+          "label": {
+            "en": "Driving",
+            "fr": "En route",
+            "de": "Fährt",
+            "es": "Conduciendo"
+          }
+        },
+        {
+          "key": "last_seen",
+          "type": "string",
+          "label": {
+            "en": "Last position (ISO date)",
+            "fr": "Dernière position (date ISO)",
+            "de": "Letzter Standort (ISO-Datum)",
+            "es": "Última posición (fecha ISO)"
+          }
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "key": "life360_circle",
+      "label": {
+        "en": "Life360 circle",
+        "fr": "Cercle Life360",
+        "de": "Life360-Kreis",
+        "es": "Círculo Life360"
+      },
+      "description": {
+        "en": "Where everyone is, phone batteries, and a button to locate everyone.",
+        "fr": "Où est chacun, batteries des téléphones, et un bouton pour localiser tout le monde.",
+        "de": "Wo alle sind, Akkus der Telefone und ein Knopf, um alle zu orten.",
+        "es": "Dónde está cada uno, baterías de los teléfonos y un botón para localizar a todos."
+      },
+      "icon": "map-pin",
+      "action_timeout_seconds": 45
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+# Life360 integration for Gladys Assistant
+
+This integration brings the members of your [Life360](https://www.life360.com) circles into
+Gladys: who is at home, where everyone is, the battery of their phone and their distance from
+home. Use it to switch the alarm on when the last person leaves, turn the heating up when someone
+is on the way home, or get a message when a phone battery runs low.
+
+> Life360 has no official public API. The integration uses the API of the Life360 mobile app, like
+> the Home Assistant integration does. Life360 may change it without notice.
+
+## What you need
+
+- Gladys Assistant **5.3 or newer**.
+- A Life360 account that belongs to the circles you want to follow.
+- Ideally, the coordinates of your house set in Gladys (**Settings → Houses**): they are used to
+  tell "at home" and to compute the distance from home.
+
+## 1. Get your Life360 access token
+
+Life360 now often refuses sign-ins with a username and password (it asks for a verification code
+the integration cannot type). The reliable way is to copy the access token from the Life360 web
+site, once:
+
+1. On a computer, open a private browser window and go to <https://life360.com/login>.
+2. Open the developer tools (**F12**), then the **Network** tab. Type `token` in the filter box.
+3. Sign in to Life360 (email or phone, then the code Life360 sends you).
+4. Click the `token` request that appears (a `POST` to `/v3/oauth2/token`), then the
+   **Response** (or **Preview**) tab.
+5. Copy the value of `access_token` (a long string of letters and digits).
+
+Keep this token private: it gives access to the positions of your circles. It stays valid for
+several weeks; when Life360 refuses it, the Configuration screen says so and you copy a new one
+the same way.
+
+## 2. Configure the integration
+
+In Gladys, open **Integrations → Life360 → Configuration**:
+
+| Field                     | What to enter                                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Sign-in method            | **Access token** (recommended), or **Username and password**.                                         |
+| Access token              | The `access_token` copied above. The `Bearer` prefix is optional.                                     |
+| Username / Password       | Only for the username and password method. The token Life360 returns is kept, not the password.       |
+| Circles to follow         | Circle names separated by commas, e.g. `Family, Grandparents`. Empty follows every circle.            |
+| Home                      | The Gladys house that means "at home". Empty takes the first house that has coordinates.              |
+| Life360 place for home    | The name of your Life360 place for home (default `Home`). Empty uses the coordinates only.            |
+| Home radius (m)           | Distance from the house still counted as "at home" (default 150 m).                                   |
+| Refresh interval (s)      | How often Life360 is read (default 60 s, 15 s minimum). Life360 limits the requests: do not go lower. |
+| Low battery threshold (%) | Below this level, the "Phone battery low" trigger fires (default 20 %).                               |
+| Detailed logs             | Logs every read, to diagnose a problem. Tokens and passwords are never logged.                        |
+
+Save, then press **Test the connection**: it lists the circles, the members and the house used as
+home.
+
+## 3. Add the members
+
+Open the **Discovery** tab of the integration: each member of the followed circles appears as a
+device named `<First name> <Last name> (Life360)`. Create the ones you want. A member who belongs
+to several circles is a single device.
+
+Each device has these features:
+
+| Feature            | Values                                                                            |
+| ------------------ | --------------------------------------------------------------------------------- |
+| At home            | 1 at home, 0 away.                                                                |
+| Phone battery      | Battery of the member's phone, in %.                                              |
+| Phone charging     | 1 while the phone charges.                                                        |
+| Distance from home | In km, from the Gladys house (none when the house has no coordinates).            |
+| Speed              | In km/h, 0 when still.                                                            |
+| Place              | The Life360 place (Home, School…), else the street address, else the coordinates. |
+
+**How "at home" is decided:** a member is at home when their position is within the home radius
+of the Gladys house, **or** when Life360 puts them in the place named in "Life360 place for home".
+The accuracy of the phone position is taken into account, up to the radius itself.
+
+The badge of each device shows **cloud** when Life360 answered, an orange dot when Life360 has no
+position for that member (location sharing turned off, phone silent), and **unreachable** when
+Life360 could not be reached.
+
+## Scenes
+
+### Triggers
+
+All the triggers can be filtered on one member; the place triggers also on a place name. Each one
+gives the scene the variables `member_name`, `place`, `address`, `battery` and `distance_km`.
+
+| Trigger                   | Key               | When                                                    |
+| ------------------------- | ----------------- | ------------------------------------------------------- |
+| Member arrived home       | `arrived_home`    | The member is at home again.                            |
+| Member left home          | `left_home`       | The member is no longer at home.                        |
+| Member arrived at a place | `place_arrived`   | The member entered a Life360 place (school, work…).     |
+| Member left a place       | `place_left`      | The member left a Life360 place.                        |
+| Member started driving    | `driving_started` | Life360 detected the member is driving.                 |
+| Phone battery low         | `battery_low`     | The phone went below the threshold and is not charging. |
+
+The triggers compare two successive reads: restarting the integration never fires "arrived
+home" for everyone. The "At home" feature also works with the standard **Device state** trigger.
+
+### Actions
+
+| Action                  | Key                       | Result                                                                                                                                  |
+| ----------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Locate a Life360 member | `request_location_update` | Asks the member's phone for a fresh position. Output: `requested`.                                                                      |
+| Read a Life360 member   | `get_member_status`       | Outputs `found`, `at_home`, `place`, `distance_km` (-1 unknown), `battery` (-1 unknown), `charging`, `driving`, `last_seen` (ISO date). |
+
+## Dashboard widget
+
+Add the **Life360 circle** widget to a dashboard: battery tiles for the first members, one line
+per member (green at home), the time of the last read, a **Refresh** button and a **Locate
+everyone** button (asks every phone for a fresh position, after a confirmation).
+
+## Troubleshooting
+
+- **"Life360 refused the access token"**: the token expired or was mistyped. Copy a new one
+  (step 1).
+- **"Life360 refused the sign-in"** with the username and password: Life360 wants a verification
+  code. Switch to the access token method.
+- **"Life360 limits the requests"**: the integration waits as long as Life360 asks, then resumes.
+  Raise the refresh interval.
+- **A member is always away**: check the coordinates of the Gladys house, raise the home radius,
+  or enter the name of your Life360 home place.
+- **No position for a member**: they turned location sharing off in the Life360 app, or their
+  phone has not reported for a while (battery saver, no network).
+
+## Privacy
+
+The token and the password stay in the integration's secret fields and are sent only to Life360.
+The positions are published to your Gladys only. See
+[SECURITY.md](https://github.com/prohand/gladys-life360/blob/main/SECURITY.md).
