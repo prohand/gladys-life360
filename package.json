@@ -1,6 +1,6 @@
 {
   "name": "gladys-life360",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "Gladys Assistant external integration for Life360: circle members, places, battery and presence.",
   "type": "module",
