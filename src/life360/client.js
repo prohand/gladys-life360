@@ -4,7 +4,8 @@
 // Life360 has no public API: this talks to the endpoints its mobile app uses,
 // the same ones the maintained Home Assistant integration relies on
 // (pnbruckner/life360). Every call is an HTTPS request to
-// api-cloudfront.life360.com, authenticated with `Authorization: Bearer`.
+// api-cloudfront.life360.com, authenticated with `Authorization: Bearer`,
+// sent through node:https rather than fetch (see https.js: Cloudflare).
 //
 // Two ways to get the token:
 //   - the user pastes the access token copied from the Life360 web site
@@ -22,6 +23,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { AUTH_METHODS } from '../config.js';
+import { httpsFetch } from './https.js';
 
 const logger = createLogger({ name: 'life360-client' });
 
@@ -86,7 +88,7 @@ export class Life360Client {
    * @param {object} config normalized configuration (see src/config.js)
    * @param {{ fetch?: typeof fetch, tokenFile?: string }} [options] injected in the tests
    */
-  constructor(config, { fetch: fetchImpl = globalThis.fetch, tokenFile = TOKEN_FILE } = {}) {
+  constructor(config, { fetch: fetchImpl = httpsFetch, tokenFile = TOKEN_FILE } = {}) {
     this.config = config;
     this.fetch = fetchImpl;
     this.tokenFile = tokenFile;
