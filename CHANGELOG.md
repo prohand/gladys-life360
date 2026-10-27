@@ -6,6 +6,12 @@ All notable changes to this integration are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Life360 calls no longer get "HTTP 403: blocked by Cloudflare" on some internet connections: the
+  integration now connects the way the Home Assistant Life360 integration does (the Node.js
+  `fetch` handshake, which offers only HTTP/1.1, was the one Cloudflare blocked).
+
 ## [0.0.2] - 2026-10-27
 
 ### Fixed
