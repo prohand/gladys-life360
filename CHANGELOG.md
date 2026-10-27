@@ -6,6 +6,8 @@ All notable changes to this integration are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-10-27
+
 ### Fixed
 
 - Life360 calls no longer get "HTTP 403: blocked by Cloudflare" on some internet connections: the
@@ -45,6 +47,7 @@ All notable changes to this integration are documented here. The format follows
   documentation).
 - `SECURITY.md`, `CLAUDE.md`, CI, Release, image build and GitHub release workflows.
 
-[Unreleased]: https://github.com/prohand/gladys-life360/compare/v0.0.2...HEAD
+[Unreleased]: https://github.com/prohand/gladys-life360/compare/v0.0.3...HEAD
+[0.0.3]: https://github.com/prohand/gladys-life360/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/prohand/gladys-life360/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/prohand/gladys-life360/releases/tag/v0.0.1
