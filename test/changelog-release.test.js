@@ -28,5 +28,12 @@ test('releasing twice the same version changes nothing', () => {
 test('CHANGELOG.md has an Unreleased section the Release workflow can roll', async () => {
   const text = await readFile(new URL('../CHANGELOG.md', import.meta.url), 'utf8');
   assert.match(text, /^## \[Unreleased\]$/m);
-  assert.match(text, new RegExp(`^\\[Unreleased\\]: ${REPO}/commits/main$`, 'm'));
+  // `commits/main` until the first release, `compare/v<last>...HEAD` after.
+  assert.match(
+    text,
+    new RegExp(
+      `^\\[Unreleased\\]: ${REPO}/(commits/main|compare/v\\d+\\.\\d+\\.\\d+\\.\\.\\.HEAD)$`,
+      'm',
+    ),
+  );
 });

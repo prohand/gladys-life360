@@ -113,6 +113,12 @@ everyone** button (asks every phone for a fresh position, after a confirmation).
 
 - **"Life360 refused the access token"**: the token expired or was mistyped. Copy a new one
   (step 1).
+- **"Life360 does not accept this access token (HTTP 403)"**: the value copied is not the
+  `access_token` of the `/v3/oauth2/token` request (another request, or the whole answer). Copy it
+  again (step 1).
+- **"Cloudflare … blocks the internet address of Gladys"**: Cloudflare, in front of Life360, refuses
+  your connection (often a VPN, a proxy or a shared address). The integration retries every
+  15 minutes; switch off the VPN, or wait a few hours.
 - **"Life360 refused the sign-in"** with the username and password: Life360 wants a verification
   code. Switch to the access token method.
 - **"Life360 limits the requests"**: the integration waits as long as Life360 asks, then resumes.

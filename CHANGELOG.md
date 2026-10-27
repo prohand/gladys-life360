@@ -6,6 +6,14 @@ All notable changes to this integration are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- An HTTP 403 from Life360 no longer says the token expired: a token Life360 does not accept and a
+  Cloudflare block of the Gladys internet address now each have their own message, and the log
+  gives the Cloudflare Ray ID.
+- After a refused token or a Cloudflare block, the integration waits 15 minutes before the next
+  try instead of retrying every minute (saving the configuration still retries at once).
+
 ## [0.0.1] - 2026-10-26
 
 ### Added

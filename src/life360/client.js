@@ -43,7 +43,7 @@ export const TOKEN_FILE = `${process.env.DATA_DIR ?? '/data'}/life360-token.json
 /** Why a Life360 call failed, in a form the rest of the code can branch on. */
 export class Life360Error extends Error {
   /**
-   * @param {'unauthorized'|'forbidden'|'not_found'|'rate_limited'|'network'|'server'|'invalid'} kind
+   * @param {'unauthorized'|'forbidden'|'blocked'|'not_found'|'rate_limited'|'network'|'server'|'invalid'} kind
    * @param {string} message
    * @param {{ status?: number, retryAfter?: number }} [details]
    */
@@ -65,6 +65,12 @@ export function redact(text, secrets) {
     }
   }
   return result.replace(/Bearer\s+[\w.~+/=-]+/gi, 'Bearer REDACTED');
+}
+
+// Cloudflare's own "Sorry, you have been blocked" page: an HTML 403 that says
+// nothing about the token. Life360's API answers JSON or an empty body.
+function isCloudflareBlock(status, contentType, text) {
+  return status === 403 && /html/i.test(contentType) && /cloudflare/i.test(text);
 }
 
 function kindOf(status) {
@@ -215,16 +221,29 @@ export class Life360Client {
       }
       if (RETRY_STATUSES.has(response.status) && attempt < MAX_ATTEMPTS) continue;
 
-      let detail = '';
+      let text = '';
       try {
-        const payload = await response.json();
-        detail = payload?.errorMessage ?? payload?.message ?? '';
+        text = await response.text();
       } catch {
-        // No JSON body: the status says enough.
+        // No body: the status says enough.
+      }
+      let kind = kindOf(response.status);
+      let detail = '';
+      if (isCloudflareBlock(response.status, response.headers?.get?.('content-type') ?? '', text)) {
+        kind = 'blocked';
+        const ray = response.headers?.get?.('cf-ray');
+        detail = `blocked by Cloudflare${ray ? ` (Ray ID ${ray})` : ''}`;
+      } else {
+        try {
+          const payload = JSON.parse(text);
+          detail = payload?.errorMessage ?? payload?.message ?? '';
+        } catch {
+          // Not JSON (Life360 sends an empty body on some 401/403).
+        }
       }
       const retryAfter = Number(response.headers?.get?.('retry-after'));
       throw new Life360Error(
-        kindOf(response.status),
+        kind,
         redact(`Life360 HTTP ${response.status}${detail ? `: ${detail}` : ''}`, this.secrets),
         {
           status: response.status,

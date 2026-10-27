@@ -19,6 +19,18 @@ export const MESSAGES = {
     de: 'Life360 hat das Zugriffstoken abgelehnt (abgelaufen oder falsch). Kopiere ein neues von life360.com.',
     es: 'Life360 rechazó el token de acceso (caducado o incorrecto). Copie uno nuevo desde life360.com.',
   },
+  tokenForbidden: {
+    en: 'Life360 does not accept this access token (HTTP 403). Copy the access_token value of the /v3/oauth2/token request again, from life360.com.',
+    fr: 'Life360 n’accepte pas ce jeton d’accès (HTTP 403). Recopiez la valeur access_token de la requête /v3/oauth2/token, depuis life360.com.',
+    de: 'Life360 akzeptiert dieses Zugriffstoken nicht (HTTP 403). Kopiere den Wert access_token der Anfrage /v3/oauth2/token erneut von life360.com.',
+    es: 'Life360 no acepta este token de acceso (HTTP 403). Vuelva a copiar el valor access_token de la petición /v3/oauth2/token, desde life360.com.',
+  },
+  blocked: {
+    en: 'Cloudflare, in front of Life360, blocks the internet address of Gladys for now. The integration slows down and retries; a VPN or proxy often causes it.',
+    fr: 'Cloudflare, devant Life360, bloque pour le moment l’adresse internet de Gladys. L’intégration ralentit et réessaie ; un VPN ou un proxy en est souvent la cause.',
+    de: 'Cloudflare vor Life360 sperrt gerade die Internetadresse von Gladys. Die Integration wird langsamer und versucht es erneut; oft ist ein VPN oder Proxy die Ursache.',
+    es: 'Cloudflare, delante de Life360, bloquea por ahora la dirección de internet de Gladys. La integración va más despacio y lo vuelve a intentar; un VPN o proxy suele ser la causa.',
+  },
   passwordRefused: {
     en: 'Life360 refused the sign-in. It often asks for a verification code now: use the access token method instead.',
     fr: 'Life360 a refusé la connexion. Il demande souvent un code de vérification : utilisez plutôt la méthode du jeton d’accès.',
@@ -84,10 +96,12 @@ export const MESSAGES = {
 /** The connection status message of a failed Life360 call. */
 export function errorMessage(err, config) {
   if (err?.kind === 'invalid') return MESSAGES.notConfigured;
+  if (err?.kind === 'blocked') return MESSAGES.blocked;
   if (err?.kind === 'unauthorized' || err?.kind === 'forbidden') {
-    return config.auth_method === AUTH_METHODS.PASSWORD
-      ? MESSAGES.passwordRefused
-      : MESSAGES.tokenRefused;
+    if (config.auth_method === AUTH_METHODS.PASSWORD) return MESSAGES.passwordRefused;
+    // A wrong or expired Bearer token gets a 401; a 403 means Life360 does
+    // not take that kind of token at all (most likely another value copied).
+    return err.kind === 'forbidden' ? MESSAGES.tokenForbidden : MESSAGES.tokenRefused;
   }
   if (err?.kind === 'rate_limited') return MESSAGES.rateLimited;
   if (err?.kind === 'network') return MESSAGES.unreachable;

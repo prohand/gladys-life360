@@ -10,8 +10,8 @@
 //   5. reports the connection status shown in the Configuration screen.
 //
 // The loop is a chain of timers, never an interval: a slow Life360 answer
-// never stacks two refreshes, and a 429 stretches the next delay to what
-// Life360 asked for (Retry-After).
+// never stacks two refreshes, a 429 stretches the next delay to what Life360
+// asked for (Retry-After), and refused credentials to 15 minutes.
 // -----------------------------------------------------------------------------
 
 import { createLogger, DEVICE_TRANSPORTS } from '@gladysassistant/integration-sdk';
@@ -27,6 +27,11 @@ const logger = createLogger({ name: 'life360' });
 // An unchanged value is re-sent this often, so it stays recently dated in
 // Gladys (a phone left at home all week is still "at home today").
 const HEARTBEAT_MS = 30 * 60 * 1000;
+// Refused credentials or a Cloudflare block never clear by themselves within a
+// minute: retrying that often only keeps the block going (and repeated
+// sign-ins get an account blocked). A configuration change retries at once.
+const REFUSED_DELAY_MS = 15 * 60 * 1000;
+const REFUSED_KINDS = new Set(['unauthorized', 'forbidden', 'blocked']);
 // After a location request the phone answers within seconds: read it then.
 const REFRESH_AFTER_REQUEST_MS = 15_000;
 const TRANSPORT_BATCH = 100;
@@ -159,6 +164,9 @@ export class Life360Service {
       this.onChange();
       if (err instanceof Life360Error && err.kind === 'rate_limited') {
         return Math.max(interval * 2, (err.retryAfter ?? 0) * 1000);
+      }
+      if (err instanceof Life360Error && REFUSED_KINDS.has(err.kind)) {
+        return Math.max(interval, REFUSED_DELAY_MS);
       }
       return interval;
     }
