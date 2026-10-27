@@ -119,6 +119,12 @@ téléphone, après confirmation).
 
 - **« Life360 a refusé le jeton d'accès »** : le jeton a expiré ou a été mal copié. Copiez-en un
   nouveau (étape 1).
+- **« Life360 n'accepte pas ce jeton d'accès (HTTP 403) »** : la valeur copiée n'est pas
+  l'`access_token` de la requête `/v3/oauth2/token` (autre requête, ou toute la réponse).
+  Recopiez-la (étape 1).
+- **« Cloudflare … bloque l'adresse internet de Gladys »** : Cloudflare, devant Life360, refuse
+  votre connexion (souvent un VPN, un proxy ou une adresse partagée). L'intégration réessaie toutes
+  les 15 minutes ; coupez le VPN, ou attendez quelques heures.
 - **« Life360 a refusé la connexion »** avec identifiant et mot de passe : Life360 veut un code de
   vérification. Passez à la méthode du jeton d'accès.
 - **« Life360 limite les requêtes »** : l'intégration attend le temps demandé par Life360, puis

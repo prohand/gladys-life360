@@ -117,6 +117,12 @@ einen frischen Standort an).
 
 - **„Life360 hat das Zugriffstoken abgelehnt“**: Das Token ist abgelaufen oder falsch kopiert.
   Kopiere ein neues (Schritt 1).
+- **„Life360 akzeptiert dieses Zugriffstoken nicht (HTTP 403)“**: Der kopierte Wert ist nicht das
+  `access_token` der Anfrage `/v3/oauth2/token` (andere Anfrage oder die ganze Antwort). Kopiere
+  es erneut (Schritt 1).
+- **„Cloudflare … sperrt die Internetadresse von Gladys“**: Cloudflare vor Life360 lehnt deine
+  Verbindung ab (oft ein VPN, ein Proxy oder eine geteilte Adresse). Die Integration versucht es
+  alle 15 Minuten erneut; schalte das VPN aus oder warte ein paar Stunden.
 - **„Life360 hat die Anmeldung abgelehnt“** mit Benutzername und Passwort: Life360 will einen
   Bestätigungscode. Wechsle zur Zugriffstoken-Methode.
 - **„Life360 begrenzt die Anfragen“**: Die Integration wartet so lange, wie Life360 es verlangt,

@@ -117,6 +117,12 @@ botón **Localizar a todos** (pide una posición nueva a cada teléfono, tras un
 
 - **«Life360 rechazó el token de acceso»**: el token caducó o se copió mal. Copie uno nuevo
   (paso 1).
+- **«Life360 no acepta este token de acceso (HTTP 403)»**: el valor copiado no es el
+  `access_token` de la petición `/v3/oauth2/token` (otra petición, o toda la respuesta). Vuelva a
+  copiarlo (paso 1).
+- **«Cloudflare … bloquea la dirección de internet de Gladys»**: Cloudflare, delante de Life360,
+  rechaza su conexión (a menudo un VPN, un proxy o una dirección compartida). La integración lo
+  vuelve a intentar cada 15 minutos; desactive el VPN, o espere unas horas.
 - **«Life360 rechazó el inicio de sesión»** con usuario y contraseña: Life360 quiere un código de
   verificación. Cambie al método del token de acceso.
 - **«Life360 limita las peticiones»**: la integración espera el tiempo que pide Life360 y luego

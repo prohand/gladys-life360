@@ -168,6 +168,21 @@ test('a refused token is reported and the badges turn unreachable', async (t) =>
   assert.equal(gladys.fake.transports.at(-1).transport, 'unreachable');
 });
 
+test('a 403 token, a Cloudflare block: own message, next try in 15 minutes', async (t) => {
+  const { gladys, app, life } = await setup();
+  t.after(() => gladys.disconnect());
+
+  life.error = new Life360Error('forbidden', 'Life360 HTTP 403', { status: 403 });
+  assert.equal(await app.service.refresh(), 15 * 60_000);
+  assert.match(gladys.fake.connectionStatus.message.en, /does not accept this access token/);
+
+  life.error = new Life360Error('blocked', 'Life360 HTTP 403: blocked by Cloudflare', {
+    status: 403,
+  });
+  assert.equal(await app.service.refresh(), 15 * 60_000);
+  assert.match(gladys.fake.connectionStatus.message.fr, /Cloudflare/);
+});
+
 test('a 429 stretches the next refresh to what Life360 asked', async (t) => {
   const { gladys, app, life } = await setup();
   t.after(() => gladys.disconnect());

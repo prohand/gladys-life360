@@ -18,8 +18,12 @@ function reply(status, body, headers = {}) {
     status,
     headers: { get: (name) => headers[name.toLowerCase()] ?? null },
     json: async () => {
-      if (body === undefined) throw new SyntaxError('no body');
+      if (body === undefined || typeof body === 'string') throw new SyntaxError('not JSON');
       return body;
+    },
+    text: async () => {
+      if (body === undefined) return '';
+      return typeof body === 'string' ? body : JSON.stringify(body);
     },
   };
 }
@@ -126,6 +130,34 @@ test('error kinds: 401, 403, 404, 429 with Retry-After, network', async () => {
     new Life360Client(config, { fetch: down.fetch, tokenFile: await tokenFile() }).getCircles(),
     (err) => err.kind === 'network' && !err.message.includes('secret-token-123'),
   );
+});
+
+test('a Life360 errorMessage is kept in the error', async () => {
+  const { fetch } = fakeFetch([reply(403, { errorMessage: 'Client is not valid' })]);
+  const client = new Life360Client(normalizeConfig({ access_token: 'tok' }), {
+    fetch,
+    tokenFile: await tokenFile(),
+  });
+  await assert.rejects(client.getCircles(), {
+    kind: 'forbidden',
+    message: 'Life360 HTTP 403: Client is not valid',
+  });
+});
+
+test('a Cloudflare block page is told apart from a refused token', async () => {
+  const page =
+    '<!DOCTYPE html><title>Attention Required! | Cloudflare</title>Sorry, you have been blocked';
+  const { fetch } = fakeFetch([
+    reply(403, page, { 'content-type': 'text/html; charset=UTF-8', 'cf-ray': 'a5128a7b-ORD' }),
+  ]);
+  const client = new Life360Client(normalizeConfig({ access_token: 'tok' }), {
+    fetch,
+    tokenFile: await tokenFile(),
+  });
+  await assert.rejects(client.getCircles(), {
+    kind: 'blocked',
+    message: 'Life360 HTTP 403: blocked by Cloudflare (Ray ID a5128a7b-ORD)',
+  });
 });
 
 test('a Cloudflare 5xx is retried once', async () => {

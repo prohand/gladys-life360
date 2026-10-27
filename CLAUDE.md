@@ -56,7 +56,8 @@ member id>)`, never the name. Feature keys (`presence`, `battery`, `charging`, `
   by users: never rename one.
 - **One refresh reads everything**: the circle list, then one request per followed circle. The
   devices carry no `poll_frequency`; the service's own timer chain drives the refresh (never an
-  interval, so a slow answer never stacks two). A 429 stretches the next delay to `Retry-After`.
+  interval, so a slow answer never stacks two). A 429 stretches the next delay to `Retry-After`; a 401/403 or a Cloudflare block (HTML 403, kind
+  `blocked`) to 15 minutes (a configuration change retries at once).
 - **States go through `publishChangedStates`** with a 30-minute heartbeat (300 states/minute host
   limit). An unknown value (no position, battery -1, no located house) is left out, never
   published as 0.
